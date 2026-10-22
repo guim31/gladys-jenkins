@@ -1,61 +1,175 @@
-# Demo Devices Template
+# Jenkins
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+[Jenkins](https://www.jenkins.io/) is the free, self-hosted automation server
+used to build, test and deploy software. This integration follows its jobs: each
+one becomes a device with the result of its last build, its number and duration,
+and whether a build is running; a **Jenkins** device sums up the build queue, the
+offline agents and the failing jobs. Scenes can react to a **finished build**, a
+job that **fails or goes back to green**, or an **agent going offline**, read a
+job, and, if you allow it, **run a job** with its parameters. A dashboard widget
+shows every job at a glance.
 
-## What you get
+Tested against a real Jenkins 2.580 LTS (Docker); not against a real Gladys
+instance yet: feedback welcome on
+[the issues](https://github.com/guim31/gladys-jenkins/issues).
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What you need
 
-## Configuration
+- Gladys Assistant 5.1.0 or later.
+- A Jenkins reachable from the Gladys machine, on the local network or on the
+  Internet.
+- A Jenkins user and its API token. Reading needs the **Overall/Read** and
+  **Job/Read** permissions; running jobs from scenes needs **Job/Build** too.
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+At each refresh (every minute by default) the integration makes three light
+requests: the job list with the ten newest builds of each job (folders
+included, three levels deep), the build queue and the nodes. Running a job adds
+two requests, only when a scene asks for it.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+## Getting started
 
-## Actions
+### 1. Create an API token
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+In Jenkins, click your name at the top right, then **Security → API Token → Add
+new Token**, give it a name and copy it (it is shown once). A dedicated user
+with only the permissions above limits what Gladys can do.
 
-## Scenes
+### 2. Configure the integration
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+In Gladys, open **Integrations → Jenkins → Configuration** and fill in:
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+- **Jenkins address**: the address you open Jenkins with,
+  `http://192.168.1.2:8080` or `https://ci.example.com` (keep the sub-path if
+  Jenkins runs under one, e.g. `https://example.com/jenkins`).
+- **User** and **API token**: the user of step 1 and its token. Both empty:
+  anonymous access, if your Jenkins allows anonymous reading.
+- **Jobs to follow**: empty for every job (50 at most), or job names or links
+  copied from the browser, separated by commas. A folder name follows every job
+  in it. Example: `backup, infra/deploy`.
+- **Allow scenes to run jobs**: off by default. Turn it on to use the **Run a
+  Jenkins job** action.
+- **Refresh interval** and **Language of the names**.
+
+Click **Test the connection**: Jenkins and its version, how many jobs are
+followed, failing or queued, how many agents are offline, whether scenes may
+run jobs, and the listed jobs Jenkins does not know.
+
+### 3. Add the devices
+
+In **Discovery**, add the **Jenkins** device and the jobs you want. Their values
+arrive at once. The scene triggers and the widget work even for a job not added
+as a device.
+
+## The devices
+
+### One device per job
+
+Named after the full name of the job (`folder/job` inside a folder). Jenkins
+gives a job no other identifier: a renamed job is a new device.
+
+| Feature             | Type     | Value                                                                 |
+| ------------------- | -------- | --------------------------------------------------------------------- |
+| Status              | text     | Success, Failed, Unstable, Aborted, Not built, Running or Never built |
+| Last build passed   | binary   | 1 when the last finished build succeeded, 0 when failed or unstable   |
+| Building            | binary   | 1 while a build runs                                                  |
+| Last build number   | counter  | number of the last build                                              |
+| Last build duration | duration | duration of the last finished build, in seconds                       |
+
+While a build runs, the status says **Running**; **Last build passed** and
+**Last build duration** keep the values of the previous build. An aborted build
+leaves **Last build passed** unchanged.
+
+### The Jenkins device
+
+| Feature        | Type    | Value                                                |
+| -------------- | ------- | ---------------------------------------------------- |
+| Build queue    | counter | builds waiting in the queue                          |
+| Offline agents | counter | nodes offline (the built-in node included)           |
+| Failing jobs   | counter | followed jobs whose last build failed or is unstable |
+| Running jobs   | counter | followed jobs building                               |
 
 ## Dashboard
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+The **Jenkins jobs** widget shows one row per job, with its status and the
+number of its last build: failed jobs first, then the unstable ones, then the
+running ones. A line above says how many builds wait in the queue and how many
+agents are offline, when there are some. Choose some jobs in its settings, or
+leave it empty for all. **Refresh** reads Jenkins again at once.
+
+## Scenes
+
+### Triggers
+
+- **Jenkins build finished**: a build of a followed job ended, whatever its
+  result (filter on the job and the result: success, failed, unstable,
+  aborted). Variables: the job name, the build number, the result in words, the
+  duration in seconds, the link and a summary ready for a message.
+- **Jenkins job failing or back to green**: a job starts failing (a failed or
+  unstable build after a success, or its first build failing), or passes again
+  after a failure (filter on the job and the change). Variables: the job name,
+  the build number, the result, the link and a summary.
+- **Jenkins agent offline**: a node that was online goes offline (filter on the
+  agent name, empty for any). Variables: the agent name, the reason given by
+  Jenkins and a summary.
+
+The first reading of a job or an agent only learns its state: the past is never
+announced. At most three builds per job and reading are announced. What was
+seen is kept in the integration, so a restart neither misses an event nor
+announces one twice.
+
+### Actions
+
+- **Run a Jenkins job**: queues a build of a followed job. Optional parameters,
+  `NAME=value` separated by `&` (e.g. `TARGET=prod&VERSION=1.2`), or a JSON object for a value holding `&` (`{"MESSAGE": "a & b"}`); empty, the job
+  uses its default values. A parameter the job does not declare is refused.
+  Needs **Allow scenes to run jobs** in the configuration. Variables: the job
+  name, whether the build was queued and its queue item number. The build goes
+  on in Jenkins: use **Jenkins build finished** to react to its end.
+- **Read a Jenkins job**: the state of a followed job as variables for the next
+  actions: status in words, last result, last build passed, building, last
+  build number and duration, link.
+
+### Scene ideas
+
+- **Jenkins job failing or back to green**, change "Failing" → turn the office
+  lamp red and send the summary; change "Back to green" → turn it back to white.
+- Every night at 3:00, if nobody is home → **Run a Jenkins job** `backup`;
+  **Jenkins build finished** for `backup` with result "Failed" → send a message.
+- **Jenkins agent offline** → send yourself a message with the summary: the
+  machine of the agent may be down.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **Jenkins does not answer**: check the address from the Gladys machine (same
+  port, same protocol); a Docker Gladys reaches the host by its IP address, not
+  `localhost`.
+- **The address redirects**: type the `https://` address the browser ends on,
+  with the sub-path if any.
+- **User or API token refused**: the token was revoked or mistyped; create a
+  new one. A password works too, but a token is better.
+- **Access denied**: no user was typed while Jenkins refuses anonymous reading,
+  or the user lacks **Overall/Read**.
+- **Jenkins refused: the user needs the Job/Build permission**: give it to the
+  user, or keep running jobs off.
+- **No Jenkins API at this address**: the address points to another service, or
+  misses the sub-path.
+- A job does not appear: it is deeper than three folder levels, or more than 50
+  jobs match the list: list fewer jobs or folders.
+- **Certificate refused**: a self-signed certificate is not accepted; use the
+  `http://` address on the local network.
+
+## Limits
+
+- Running jobs is the only command, and is off by default. Builds cannot be
+  stopped from Gladys.
+- 50 jobs at most, three folder levels deep; Jenkins is read every minute at the
+  most often: an event arrives up to one interval late.
+- A job is known by its full name: renaming it or moving it to another folder
+  makes a new device.
+- The ten newest builds of each job are read: when more than ten builds end
+  between two readings, the oldest ones are not announced.
+- Pipeline stages, test reports and build logs are not read.
+- The texts of devices and scenes follow the language of the configuration;
+  feature names are set when a device is added.
+- Developed and tested against Jenkins 2.580 LTS; older versions with the same
+  JSON API should work, without a guarantee.

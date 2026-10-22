@@ -1,0 +1,99 @@
+{
+  "_class": "hudson.model.Hudson",
+  "jobs": [
+    {
+      "_class": "hudson.model.FreeStyleProject",
+      "fullName": "backup-ok",
+      "name": "backup-ok",
+      "url": "http://192.0.2.20:8080/job/backup-ok/",
+      "buildable": true,
+      "builds": [
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 2027,
+          "number": 2,
+          "result": "SUCCESS",
+          "timestamp": 1792684849319,
+          "url": "http://192.0.2.20:8080/job/backup-ok/2/"
+        },
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 2351,
+          "number": 1,
+          "result": "SUCCESS",
+          "timestamp": 1792684829317,
+          "url": "http://192.0.2.20:8080/job/backup-ok/1/"
+        }
+      ],
+      "color": "blue"
+    },
+    {
+      "_class": "hudson.model.FreeStyleProject",
+      "fullName": "deploy",
+      "name": "deploy",
+      "url": "http://192.0.2.20:8080/job/deploy/",
+      "buildable": true,
+      "builds": [
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 5025,
+          "number": 2,
+          "result": "SUCCESS",
+          "timestamp": 1792684853686,
+          "url": "http://192.0.2.20:8080/job/deploy/2/"
+        },
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 5026,
+          "number": 1,
+          "result": "SUCCESS",
+          "timestamp": 1792684836798,
+          "url": "http://192.0.2.20:8080/job/deploy/1/"
+        }
+      ],
+      "color": "blue"
+    },
+    {
+      "_class": "hudson.model.FreeStyleProject",
+      "fullName": "flaky",
+      "name": "flaky",
+      "url": "http://192.0.2.20:8080/job/flaky/",
+      "buildable": true,
+      "builds": [
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 36,
+          "number": 1,
+          "result": "UNSTABLE",
+          "timestamp": 1792684835453,
+          "url": "http://192.0.2.20:8080/job/flaky/1/"
+        }
+      ],
+      "color": "yellow"
+    },
+    {
+      "_class": "hudson.model.FreeStyleProject",
+      "fullName": "tests-broken",
+      "name": "tests-broken",
+      "url": "http://192.0.2.20:8080/job/tests-broken/",
+      "buildable": true,
+      "builds": [
+        {
+          "_class": "hudson.model.FreeStyleBuild",
+          "building": false,
+          "duration": 39,
+          "number": 1,
+          "result": "FAILURE",
+          "timestamp": 1792684834312,
+          "url": "http://192.0.2.20:8080/job/tests-broken/1/"
+        }
+      ],
+      "color": "red"
+    }
+  ]
+}

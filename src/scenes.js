@@ -1,41 +1,51 @@
 // -----------------------------------------------------------------------------
-// Scene actions (SDK v0.14+, Gladys 5.1+).
+// Scene action handlers (manifest `scene_actions`, Gladys 5.1+).
 //
-// A scene action is an OPERATION a scene author places in a scene, with
-// parameters and a result: "identify this device", "take a snapshot", "clean
-// these rooms". Each one is declared in the manifest `scene_actions` field
-// (key, label, `fields` in the config_schema grammar, scalar `outputs`) and
-// handled here, keyed by that same `key`; index.js registers every entry with
-// `gladys.onSceneAction(key, ...)`.
+// "Run a Jenkins job": queues a build of a followed job, with optional
+// parameters. Off unless "Allow scenes to run jobs" is on in the
+// configuration. The build goes on in Jenkins: the "Build finished" trigger
+// reports its end.
 //
-// Scene TRIGGERS are the other direction ("this happened"): they are fired by
-// the device that observes the event, see src/devices/motionSensor.js.
-//
-// The rules that matter:
-//   - `fields` arrive RESOLVED: scene variables substituted, defaults applied,
-//     validated by the core; a `"source": "devices"` field is the chosen
-//     device external_id;
-//   - resolve an object of the declared `outputs` (scalars only), readable by
-//     the following actions of the scene, or `undefined` for none. Keys not
-//     declared in the manifest are dropped by the core;
-//   - throwing fails THIS action only: the scene logs it and continues. A
-//     scene action is never a condition: return an output and let the scene
-//     author gate on it;
-//   - never fire a scene event as a consequence of a received action: a scene
-//     bound to that event would loop through the integration.
+// "Read a Jenkins job": the state of a followed job as outputs, for the next
+// actions of the scene (a message, a condition). Read again when the last
+// reading is older than 30 seconds.
 // -----------------------------------------------------------------------------
 
-import { createLogger } from '@gladysassistant/integration-sdk';
-import { signalDevice } from './devices/index.js';
-
-const logger = createLogger({ name: 'scenes' });
+import { buildsOf, durationSeconds, statusOf } from './devices.js';
+import { parseParameters } from './hub.js';
+import { RESULTS } from './jenkins/client.js';
+import { STATUS_TEXT, pick } from './texts.js';
 
 export const SCENE_ACTIONS = {
-  // The ack is awaited under the action's `timeout_seconds` (15 s in the
-  // manifest), counted from the moment the scene reaches the action.
-  async identify_device(gladys, { fields, config }) {
-    logger.info(`Scene action identify_device <- ${fields.device}`);
-    const signalled = await signalDevice(gladys, fields.device, config);
-    return { signalled };
+  async run_job(hub, { fields = {} }) {
+    const language = hub.config.language;
+    // Checked first: no request to Jenkins when running is off.
+    if (!hub.config.allowBuild) {
+      return hub.build(null, null, language);
+    }
+    const parameters = parseParameters(fields.parameters, language);
+    const job = await hub.jobOf(fields.job, language);
+    const { queueId } = await hub.build(job, parameters, language);
+    return {
+      job_name: job.fullName,
+      queued: queueId !== null,
+      queue_id: queueId ?? 0,
+    };
+  },
+
+  async get_job(hub, { fields = {} }) {
+    const language = hub.config.language;
+    const job = await hub.jobOf(fields.job, language);
+    const { last, finished } = buildsOf(job);
+    return {
+      job_name: job.fullName,
+      status: pick(STATUS_TEXT[statusOf(job)], language),
+      result: finished?.result ?? '',
+      passing: finished?.result === RESULTS.SUCCESS,
+      building: last?.building === true,
+      build_number: last?.number ?? 0,
+      duration: durationSeconds(finished) ?? 0,
+      url: last?.url || job.url,
+    };
   },
 };

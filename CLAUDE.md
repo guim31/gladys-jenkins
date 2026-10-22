@@ -31,16 +31,20 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
+index.js                          SDK wiring only (src/app.js registers the handlers)
+src/app.js                        every SDK handler, wired to the hub; the tests use it too
+src/hub.js                        reading loop, states, scene events, transports, builds
+src/jenkins/client.js             Jenkins JSON API client (the only network code)
+src/devices.js                    device payloads (one per job + the server) and their values
 src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/widgets.js                    dashboard widget handler (manifest `widgets`)
+src/texts.js                      every text sent to Gladys, in four languages
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js, src/problems.js     /data persistence; one log line per repeated failure
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
+test/                             node --test, against the SDK's fake Gladys and test/helpers/fakeJenkins.js
+test/fixtures/jenkins/            real answers of Jenkins 2.580.1 LTS, anonymized
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +74,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, feature names, and `docs/{en,fr,de,es}.md`, kept in
+  sync (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +238,29 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Jenkins (cette intégration)
+
+- **API** : JSON de l'accès distant, authentification basique utilisateur + jeton d'API. Trois requêtes
+  par lecture (chaque minute par défaut, minuteur du conteneur, `should_poll: false`) :
+  `/api/json?tree=jobs[…,builds[…]{0,5},jobs[…]]` (trois niveaux de dossiers), `/queue/api/json`,
+  `/computer/api/json`. La version vient de l'en-tête `X-Jenkins`. Il faut `curl -g` pour essayer ces
+  URL à la main (les crochets sont un motif pour curl).
+- **Identité d'une tâche** : son nom complet (`dossier/tâche`), encodé par `encodeURIComponent` dans
+  l'`external_id` (un nom peut contenir des espaces, `:` sépare les morceaux de l'id). Jenkins n'a pas
+  d'autre identifiant stable : renommer ou déplacer une tâche crée un nouvel appareil. Une branche de
+  multibranche s'appelle déjà `feature%2Fx` dans Jenkins (son URL contient `feature%252Fx`).
+- **Codes relevés sur 2.580.1** : sans identifiant et lecture anonyme interdite, **403** (pas 401) ;
+  mauvais jeton, 401 ; `POST /build` sur une tâche paramétrée, **400**, et `/buildWithParameters` sur une
+  tâche sans paramètre, 400 aussi : le client choisit l'URL d'après la définition de la tâche. Un
+  `buildWithParameters` identique à un élément déjà en file répond **303** (fusionné, pas de nouvel
+  élément). Une requête par jeton d'API n'a pas besoin de crumb CSRF ; un mot de passe, si (403) : le
+  client redemande avec le crumb et le cookie de session.
+- Une exécution en cours a `building: true`, `result: null`, `duration: 0` : le résultat et la durée
+  affichés restent ceux de la dernière exécution terminée.
+- Les exécutions terminées vues sont gardées dans `/data` (numéros) : les dix dernières de chaque tâche
+  sont lues, donc des exécutions finies dans le désordre (exécutions concurrentes) sont annoncées une
+  fois chacune. Seule une exécution plus récente que la dernière décisive peut changer « en échec / au vert » (nombre `decided`) ; les numéros de la fenêtre courante restent toujours dans `seen` (sinon une tâche recréée, numéros repartis de 1, réannonce ses exécutions à chaque lecture). Instable compte comme en échec pour « en échec / revenue au vert » ; annulée ne change
+  rien.
+- Lancer une tâche est désactivé par défaut (`allow_build`) et limité aux tâches suivies, avec les seuls
+  paramètres déclarés par la tâche.
