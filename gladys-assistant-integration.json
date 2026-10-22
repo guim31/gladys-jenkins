@@ -1,177 +1,841 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Jenkins",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Your Jenkins jobs in Gladys: build status, failure alerts, run a job from a scene.",
+    "fr": "Vos tâches Jenkins dans Gladys : état des builds, alertes d'échec, lancement depuis une scène.",
+    "de": "Deine Jenkins-Jobs in Gladys: Build-Status, Fehlerwarnungen, Job aus einer Szene starten.",
+    "es": "Sus tareas de Jenkins en Gladys: estado de los builds, alertas de fallo, lanzar desde una escena."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-jenkins:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-jenkins/main/cover.png",
+  "categories": ["services"],
   "transports": ["local", "cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your Jenkins",
+        "fr": "Votre Jenkins",
+        "de": "Dein Jenkins",
+        "es": "Su Jenkins"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Enter the address of your Jenkins, a user and its API token (click your name at the top right → Security → API Token → Add new Token). A user with the Overall/Read and Job/Read permissions is enough to follow the jobs.",
+        "fr": "Saisissez l'adresse de votre Jenkins, un utilisateur et son jeton d'API (cliquez sur votre nom en haut à droite → Sécurité → Jeton d'API → Ajouter un nouveau jeton). Un utilisateur avec les droits Overall/Read et Job/Read suffit pour suivre les tâches.",
+        "de": "Gib die Adresse deines Jenkins, einen Benutzer und sein API-Token ein (klicke oben rechts auf deinen Namen → Sicherheit → API-Token → Neues Token hinzufügen). Ein Benutzer mit den Rechten Overall/Read und Job/Read reicht, um die Jobs zu verfolgen.",
+        "es": "Introduzca la dirección de su Jenkins, un usuario y su token de API (haga clic en su nombre arriba a la derecha → Seguridad → Token de API → Añadir nuevo token). Basta con un usuario con los permisos Overall/Read y Job/Read para seguir las tareas."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-jenkins/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide d'installation",
+            "de": "Einrichtungsanleitung",
+            "es": "Guía de instalación"
+          }
+        },
+        {
+          "url": "https://www.jenkins.io/doc/book/using/remote-access-api/",
+          "label": {
+            "en": "Jenkins remote access API",
+            "fr": "API d'accès distant de Jenkins",
+            "de": "Jenkins-API für den Fernzugriff",
+            "es": "API de acceso remoto de Jenkins"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "url",
+      "type": "string",
+      "label": {
+        "en": "Jenkins address",
+        "fr": "Adresse de Jenkins",
+        "de": "Adresse von Jenkins",
+        "es": "Dirección de Jenkins"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "The address you open Jenkins with: http://192.168.1.2:8080 or https://ci.example.com.",
+        "fr": "L'adresse avec laquelle vous ouvrez Jenkins : http://192.168.1.2:8080 ou https://ci.example.com.",
+        "de": "Die Adresse, mit der du Jenkins öffnest: http://192.168.1.2:8080 oder https://ci.example.com.",
+        "es": "La dirección con la que abre Jenkins: http://192.168.1.2:8080 o https://ci.example.com."
+      },
+      "placeholder": {
+        "en": "e.g. http://192.168.1.2:8080",
+        "fr": "ex. http://192.168.1.2:8080",
+        "de": "z. B. http://192.168.1.2:8080",
+        "es": "p. ej. http://192.168.1.2:8080"
+      },
+      "required": false
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "User",
+        "fr": "Utilisateur",
+        "de": "Benutzer",
+        "es": "Usuario"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "The Jenkins user the API token belongs to.",
+        "fr": "L'utilisateur Jenkins auquel appartient le jeton d'API.",
+        "de": "Der Jenkins-Benutzer, dem das API-Token gehört.",
+        "es": "El usuario de Jenkins al que pertenece el token de API."
+      },
+      "required": false
     },
     {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "key": "token",
+      "type": "secret",
+      "label": {
+        "en": "API token",
+        "fr": "Jeton d'API",
+        "de": "API-Token",
+        "es": "Token de API"
+      },
+      "description": {
+        "en": "Empty with the user empty: anonymous access, if Jenkins allows it.",
+        "fr": "Vide, avec l'utilisateur vide : accès anonyme, si Jenkins le permet.",
+        "de": "Leer, mit leerem Benutzer: anonymer Zugriff, falls Jenkins ihn erlaubt.",
+        "es": "Vacío, con el usuario vacío: acceso anónimo, si Jenkins lo permite."
+      },
+      "required": false
+    },
+    {
+      "key": "jobs",
+      "type": "string",
+      "label": {
+        "en": "Jobs to follow",
+        "fr": "Tâches à suivre",
+        "de": "Zu verfolgende Jobs",
+        "es": "Tareas que seguir"
+      },
+      "description": {
+        "en": "Empty: every job (50 at most). Otherwise job names or links, separated by commas; a folder name follows every job in it.",
+        "fr": "Vide : toutes les tâches (50 au plus). Sinon des noms ou des liens de tâches, séparés par des virgules ; un nom de dossier suit toutes ses tâches.",
+        "de": "Leer: alle Jobs (höchstens 50). Sonst Job-Namen oder Links, durch Kommas getrennt; ein Ordnername verfolgt alle Jobs darin.",
+        "es": "Vacío: todas las tareas (50 como máximo). Si no, nombres o enlaces de tareas, separados por comas; un nombre de carpeta sigue todas sus tareas."
+      },
+      "placeholder": {
+        "en": "e.g. backup, my-folder/deploy",
+        "fr": "ex. sauvegarde, mon-dossier/deploiement",
+        "de": "z. B. backup, mein-ordner/deploy",
+        "es": "p. ej. copia, mi-carpeta/despliegue"
+      },
+      "required": false
+    },
+    {
+      "key": "options",
+      "type": "section",
+      "label": {
+        "en": "Options",
+        "fr": "Options",
+        "de": "Optionen",
+        "es": "Opciones"
+      }
+    },
+    {
+      "key": "allow_build",
+      "type": "boolean",
+      "label": {
+        "en": "Allow scenes to run jobs",
+        "fr": "Autoriser les scènes à lancer des tâches",
+        "de": "Szenen dürfen Jobs starten",
+        "es": "Permitir que las escenas lancen tareas"
+      },
+      "description": {
+        "en": "Off by default. When on, the \"Run a Jenkins job\" action can start any followed job: the user needs the Job/Build permission.",
+        "fr": "Désactivé par défaut. Activé, l'action « Lancer une tâche Jenkins » peut démarrer toute tâche suivie : l'utilisateur doit avoir le droit Job/Build.",
+        "de": "Standardmäßig aus. Wenn an, kann die Aktion „Jenkins-Job starten“ jeden verfolgten Job starten: Der Benutzer braucht das Recht Job/Build.",
+        "es": "Desactivado por defecto. Si se activa, la acción «Lanzar una tarea de Jenkins» puede iniciar cualquier tarea seguida: el usuario necesita el permiso Job/Build."
+      },
       "required": false,
-      "default": "celsius",
+      "default": false
+    },
+    {
+      "key": "poll_interval",
+      "type": "select",
+      "label": {
+        "en": "Refresh interval",
+        "fr": "Intervalle d'actualisation",
+        "de": "Aktualisierungsintervall",
+        "es": "Intervalo de actualización"
+      },
+      "description": {
+        "en": "How often Jenkins is read: three light requests each time.",
+        "fr": "La fréquence de lecture de Jenkins : trois requêtes légères à chaque fois.",
+        "de": "Wie oft Jenkins gelesen wird: jedes Mal drei leichte Anfragen.",
+        "es": "Con qué frecuencia se lee Jenkins: tres solicitudes ligeras cada vez."
+      },
+      "required": false,
+      "default": "1",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "1",
+          "label": {
+            "en": "1 minute",
+            "fr": "1 minute",
+            "de": "1 Minute",
+            "es": "1 minuto"
+          }
+        },
+        {
+          "value": "2",
+          "label": {
+            "en": "2 minutes",
+            "fr": "2 minutes",
+            "de": "2 Minuten",
+            "es": "2 minutos"
+          }
+        },
+        {
+          "value": "5",
+          "label": {
+            "en": "5 minutes",
+            "fr": "5 minutes",
+            "de": "5 Minuten",
+            "es": "5 minutos"
+          }
+        },
+        {
+          "value": "10",
+          "label": {
+            "en": "10 minutes",
+            "fr": "10 minutes",
+            "de": "10 Minuten",
+            "es": "10 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "15 minutes",
+            "fr": "15 minutes",
+            "de": "15 Minuten",
+            "es": "15 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of the names",
+        "fr": "Langue des noms",
+        "de": "Sprache der Namen",
+        "es": "Idioma de los nombres"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Language of the feature names (set when a device is added), of the job statuses and of the scene texts.",
+        "fr": "Langue des noms des fonctionnalités (fixés à l'ajout d'un appareil), des états des tâches et des textes de scène.",
+        "de": "Sprache der Funktionsnamen (beim Hinzufügen eines Geräts festgelegt), der Job-Status und der Szenentexte.",
+        "es": "Idioma de los nombres de las funciones (fijados al añadir un dispositivo), de los estados de las tareas y de los textos de escena."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "build_finished",
+      "label": {
+        "en": "Jenkins build finished",
+        "fr": "Exécution Jenkins terminée",
+        "de": "Jenkins-Build beendet",
+        "es": "Ejecución de Jenkins terminada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A build of a followed job ended, whatever its result.",
+        "fr": "Une exécution d'une tâche suivie s'est terminée, quel que soit son résultat.",
+        "de": "Ein Build eines verfolgten Jobs ist beendet, egal mit welchem Ergebnis.",
+        "es": "Ha terminado una ejecución de una tarea seguida, sea cual sea su resultado."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "job",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Job",
+            "fr": "Tâche",
+            "de": "Job",
+            "es": "Tarea"
+          }
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "result",
+          "type": "select",
+          "label": {
+            "en": "Result",
+            "fr": "Résultat",
+            "de": "Ergebnis",
+            "es": "Resultado"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "success",
+              "label": {
+                "en": "Success",
+                "fr": "Réussie",
+                "de": "Erfolgreich",
+                "es": "Correcta"
+              }
+            },
+            {
+              "value": "failure",
+              "label": {
+                "en": "Failed",
+                "fr": "En échec",
+                "de": "Fehlgeschlagen",
+                "es": "Fallida"
+              }
+            },
+            {
+              "value": "unstable",
+              "label": {
+                "en": "Unstable",
+                "fr": "Instable",
+                "de": "Instabil",
+                "es": "Inestable"
+              }
+            },
+            {
+              "value": "aborted",
+              "label": {
+                "en": "Aborted",
+                "fr": "Annulée",
+                "de": "Abgebrochen",
+                "es": "Cancelada"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "job_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Job name",
+            "fr": "Nom de la tâche",
+            "de": "Name des Jobs",
+            "es": "Nombre de la tarea"
+          }
+        },
+        {
+          "key": "number",
+          "type": "number",
+          "label": {
+            "en": "Build number",
+            "fr": "Numéro de l'exécution",
+            "de": "Build-Nummer",
+            "es": "Número de la ejecución"
+          }
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "Result, in words",
+            "fr": "Résultat, en toutes lettres",
+            "de": "Ergebnis in Worten",
+            "es": "Resultado, en palabras"
+          }
+        },
+        {
+          "key": "duration",
+          "type": "number",
+          "label": {
+            "en": "Duration (seconds)",
+            "fr": "Durée (secondes)",
+            "de": "Dauer (Sekunden)",
+            "es": "Duración (segundos)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link",
+            "fr": "Lien",
+            "de": "Link",
+            "es": "Enlace"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary, ready for a message",
+            "fr": "Résumé, prêt pour un message",
+            "de": "Zusammenfassung für eine Nachricht",
+            "es": "Resumen, listo para un mensaje"
+          }
+        }
+      ]
+    },
+    {
+      "key": "job_status_changed",
+      "label": {
+        "en": "Jenkins job failing or back to green",
+        "fr": "Tâche Jenkins en échec ou revenue au vert",
+        "de": "Jenkins-Job fehlgeschlagen oder wieder grün",
+        "es": "Tarea de Jenkins fallida o de nuevo en verde"
+      },
+      "description": {
+        "en": "A job starts failing (failed or unstable build), or passes again after a failure.",
+        "fr": "Une tâche passe en échec (exécution en échec ou instable), ou réussit de nouveau après un échec.",
+        "de": "Ein Job schlägt fehl (fehlgeschlagener oder instabiler Build) oder ist nach einem Fehler wieder erfolgreich.",
+        "es": "Una tarea empieza a fallar (ejecución fallida o inestable), o vuelve a pasar tras un fallo."
+      },
+      "fields": [
+        {
+          "key": "job",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Job",
+            "fr": "Tâche",
+            "de": "Job",
+            "es": "Tarea"
+          }
+        },
+        {
+          "key": "state",
+          "type": "select",
+          "label": {
+            "en": "Change",
+            "fr": "Changement",
+            "de": "Änderung",
+            "es": "Cambio"
+          },
+          "options": [
+            {
+              "value": "failure",
+              "label": {
+                "en": "Failing",
+                "fr": "En échec",
+                "de": "Fehlgeschlagen",
+                "es": "Fallida"
+              }
+            },
+            {
+              "value": "success",
+              "label": {
+                "en": "Back to green",
+                "fr": "Revenue au vert",
+                "de": "Wieder grün",
+                "es": "De nuevo en verde"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "job_name",
+          "type": "string",
+          "label": {
+            "en": "Job name",
+            "fr": "Nom de la tâche",
+            "de": "Name des Jobs",
+            "es": "Nombre de la tarea"
+          }
+        },
+        {
+          "key": "number",
+          "type": "number",
+          "label": {
+            "en": "Build number",
+            "fr": "Numéro de l'exécution",
+            "de": "Build-Nummer",
+            "es": "Número de la ejecución"
+          }
+        },
+        {
+          "key": "result",
+          "type": "string",
+          "label": {
+            "en": "Result (success, failure, unstable)",
+            "fr": "Résultat (success, failure, unstable)",
+            "de": "Ergebnis (success, failure, unstable)",
+            "es": "Resultado (success, failure, unstable)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link",
+            "fr": "Lien",
+            "de": "Link",
+            "es": "Enlace"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary, ready for a message",
+            "fr": "Résumé, prêt pour un message",
+            "de": "Zusammenfassung für eine Nachricht",
+            "es": "Resumen, listo para un mensaje"
+          }
+        }
+      ]
+    },
+    {
+      "key": "agent_offline",
+      "label": {
+        "en": "Jenkins agent offline",
+        "fr": "Agent Jenkins hors ligne",
+        "de": "Jenkins-Agent offline",
+        "es": "Agente de Jenkins desconectado"
+      },
+      "description": {
+        "en": "A Jenkins node that was online goes offline.",
+        "fr": "Un nœud Jenkins qui était en ligne passe hors ligne.",
+        "de": "Ein Jenkins-Knoten, der online war, geht offline.",
+        "es": "Un nodo de Jenkins que estaba conectado se desconecta."
+      },
+      "fields": [
+        {
+          "key": "agent_name",
+          "type": "string",
+          "label": {
+            "en": "Agent name (empty: any)",
+            "fr": "Nom de l'agent (vide : tous)",
+            "de": "Name des Agenten (leer: alle)",
+            "es": "Nombre del agente (vacío: todos)"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "agent_name",
+          "type": "string",
+          "label": {
+            "en": "Agent name",
+            "fr": "Nom de l'agent",
+            "de": "Name des Agenten",
+            "es": "Nombre del agente"
+          }
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "label": {
+            "en": "Reason given by Jenkins",
+            "fr": "Raison donnée par Jenkins",
+            "de": "Von Jenkins genannter Grund",
+            "es": "Motivo indicado por Jenkins"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary, ready for a message",
+            "fr": "Résumé, prêt pour un message",
+            "de": "Zusammenfassung für eine Nachricht",
+            "es": "Resumen, listo para un mensaje"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "run_job",
+      "label": {
+        "en": "Run a Jenkins job",
+        "fr": "Lancer une tâche Jenkins",
+        "de": "Jenkins-Job starten",
+        "es": "Lanzar una tarea de Jenkins"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Queue a build of a followed job. Needs \"Allow scenes to run jobs\" in the configuration.",
+        "fr": "Met en file une exécution d'une tâche suivie. Exige « Autoriser les scènes à lancer des tâches » dans la configuration.",
+        "de": "Reiht einen Build eines verfolgten Jobs ein. Erfordert „Szenen dürfen Jobs starten“ in der Konfiguration.",
+        "es": "Pone en cola una ejecución de una tarea seguida. Requiere «Permitir que las escenas lancen tareas» en la configuración."
+      },
+      "timeout_seconds": 60,
       "fields": [
         {
-          "key": "device",
+          "key": "job",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Job",
+            "fr": "Tâche",
+            "de": "Job",
+            "es": "Tarea"
+          },
+          "required": true
+        },
+        {
+          "key": "parameters",
+          "type": "string",
+          "label": {
+            "en": "Parameters (optional)",
+            "fr": "Paramètres (facultatif)",
+            "de": "Parameter (optional)",
+            "es": "Parámetros (opcional)"
+          },
+          "description": {
+            "en": "NAME=value, separated by &. Empty: the default values of the job.",
+            "fr": "NOM=valeur, séparés par &. Vide : les valeurs par défaut de la tâche.",
+            "de": "NAME=Wert, durch & getrennt. Leer: die Standardwerte des Jobs.",
+            "es": "NOMBRE=valor, separados por &. Vacío: los valores por defecto de la tarea."
+          },
+          "placeholder": {
+            "en": "e.g. TARGET=prod&VERSION=1.2",
+            "fr": "ex. TARGET=prod&VERSION=1.2",
+            "de": "z. B. TARGET=prod&VERSION=1.2",
+            "es": "p. ej. TARGET=prod&VERSION=1.2"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "key": "job_name",
+          "type": "string",
+          "label": {
+            "en": "Job name",
+            "fr": "Nom de la tâche",
+            "de": "Name des Jobs",
+            "es": "Nombre de la tarea"
+          }
+        },
+        {
+          "key": "queued",
+          "type": "boolean",
+          "label": {
+            "en": "Queued",
+            "fr": "Mise en file",
+            "de": "Eingereiht",
+            "es": "En cola"
+          }
+        },
+        {
+          "key": "queue_id",
+          "type": "number",
+          "label": {
+            "en": "Queue item number",
+            "fr": "Numéro dans la file",
+            "de": "Nummer in der Warteschlange",
+            "es": "Número en la cola"
+          }
+        }
+      ]
+    },
+    {
+      "key": "get_job",
+      "label": {
+        "en": "Read a Jenkins job",
+        "fr": "Lire une tâche Jenkins",
+        "de": "Jenkins-Job lesen",
+        "es": "Leer una tarea de Jenkins"
+      },
+      "description": {
+        "en": "The state of a followed job, for the next actions of the scene.",
+        "fr": "L'état d'une tâche suivie, pour les actions suivantes de la scène.",
+        "de": "Der Status eines verfolgten Jobs für die nächsten Aktionen der Szene.",
+        "es": "El estado de una tarea seguida, para las siguientes acciones de la escena."
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "job",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Job",
+            "fr": "Tâche",
+            "de": "Job",
+            "es": "Tarea"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "job_name",
+          "type": "string",
+          "label": {
+            "en": "Job name",
+            "fr": "Nom de la tâche",
+            "de": "Name des Jobs",
+            "es": "Nombre de la tarea"
+          }
+        },
+        {
+          "key": "status",
+          "type": "string",
+          "label": {
+            "en": "Status, in words",
+            "fr": "État, en toutes lettres",
+            "de": "Status in Worten",
+            "es": "Estado, en palabras"
+          }
+        },
+        {
+          "key": "result",
+          "type": "string",
+          "label": {
+            "en": "Last result (success, failure, unstable, aborted)",
+            "fr": "Dernier résultat (success, failure, unstable, aborted)",
+            "de": "Letztes Ergebnis (success, failure, unstable, aborted)",
+            "es": "Último resultado (success, failure, unstable, aborted)"
+          }
+        },
+        {
+          "key": "passing",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Last build passed",
+            "fr": "Dernière exécution réussie",
+            "de": "Letzter Build erfolgreich",
+            "es": "Última ejecución correcta"
+          }
+        },
+        {
+          "key": "building",
+          "type": "boolean",
+          "label": {
+            "en": "Building",
+            "fr": "En cours",
+            "de": "Läuft",
+            "es": "En curso"
+          }
+        },
+        {
+          "key": "build_number",
+          "type": "number",
+          "label": {
+            "en": "Last build number",
+            "fr": "Numéro de la dernière exécution",
+            "de": "Nummer des letzten Builds",
+            "es": "Número de la última ejecución"
+          }
+        },
+        {
+          "key": "duration",
+          "type": "number",
+          "label": {
+            "en": "Last build duration (seconds)",
+            "fr": "Durée de la dernière exécution (secondes)",
+            "de": "Dauer des letzten Builds (Sekunden)",
+            "es": "Duración de la última ejecución (segundos)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link",
+            "fr": "Lien",
+            "de": "Link",
+            "es": "Enlace"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
+      "key": "jobs",
+      "label": {
+        "en": "Jenkins jobs",
+        "fr": "Tâches Jenkins",
+        "de": "Jenkins-Jobs",
+        "es": "Tareas de Jenkins"
+      },
       "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+        "en": "Status of the followed jobs, build queue and offline agents.",
+        "fr": "État des tâches suivies, file d'attente et agents hors ligne.",
+        "de": "Status der verfolgten Jobs, Warteschlange und Agenten offline.",
+        "es": "Estado de las tareas seguidas, cola y agentes desconectados."
       },
       "icon": "activity",
-      "action_timeout_seconds": 15
+      "settings": [
+        {
+          "key": "jobs",
+          "type": "multi_select",
+          "source": "devices",
+          "label": {
+            "en": "Jobs (empty: all)",
+            "fr": "Tâches (vide : toutes)",
+            "de": "Jobs (leer: alle)",
+            "es": "Tareas (vacío: todas)"
+          },
+          "description": {
+            "en": "Empty: every followed job. Only the devices added to Gladys can be chosen.",
+            "fr": "Vide : toutes les tâches suivies. Seuls les appareils ajoutés à Gladys sont proposés.",
+            "de": "Leer: alle verfolgten Jobs. Nur die zu Gladys hinzugefügten Geräte sind wählbar.",
+            "es": "Vacío: todas las tareas seguidas. Solo se pueden elegir los dispositivos añadidos a Gladys."
+          },
+          "required": false
+        }
+      ]
     }
   ]
 }

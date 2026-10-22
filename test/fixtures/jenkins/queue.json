@@ -1,0 +1,44 @@
+{
+  "_class": "hudson.model.Queue",
+  "items": [
+    {
+      "_class": "hudson.model.Queue$WaitingItem",
+      "blocked": false,
+      "id": 8,
+      "inQueueSince": 1792684885197,
+      "stuck": false,
+      "task": {
+        "_class": "hudson.model.FreeStyleProject",
+        "name": "deploy",
+        "url": "http://192.0.2.20:8080/job/deploy/"
+      },
+      "why": "Finished waiting"
+    },
+    {
+      "_class": "hudson.model.Queue$WaitingItem",
+      "blocked": false,
+      "id": 9,
+      "inQueueSince": 1792684885244,
+      "stuck": false,
+      "task": {
+        "_class": "hudson.model.FreeStyleProject",
+        "name": "deploy",
+        "url": "http://192.0.2.20:8080/job/deploy/"
+      },
+      "why": "Finished waiting"
+    },
+    {
+      "_class": "hudson.model.Queue$WaitingItem",
+      "blocked": false,
+      "id": 10,
+      "inQueueSince": 1792684885297,
+      "stuck": false,
+      "task": {
+        "_class": "hudson.model.FreeStyleProject",
+        "name": "deploy",
+        "url": "http://192.0.2.20:8080/job/deploy/"
+      },
+      "why": "Finished waiting"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "_class": "hudson.model.ComputerSet",
+  "computer": [
+    {
+      "_class": "hudson.model.Hudson$MasterComputer",
+      "displayName": "Built-In Node",
+      "offline": false,
+      "offlineCauseReason": "",
+      "temporarilyOffline": false
+    },
+    {
+      "_class": "hudson.slaves.SlaveComputer",
+      "displayName": "builder-1",
+      "offline": true,
+      "offlineCauseReason": "",
+      "temporarilyOffline": false
+    }
+  ]
+}

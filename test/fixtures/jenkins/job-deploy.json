@@ -1,0 +1,15 @@
+{
+  "_class": "hudson.model.FreeStyleProject",
+  "buildable": true,
+  "property": [
+    {
+      "_class": "hudson.model.ParametersDefinitionProperty",
+      "parameterDefinitions": [
+        {
+          "_class": "hudson.model.StringParameterDefinition",
+          "name": "TARGET"
+        }
+      ]
+    }
+  ]
+}
