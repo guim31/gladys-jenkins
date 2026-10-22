@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-22
+
 ### Added
 
 - One device per followed Jenkins job: status (success, failed, unstable,
@@ -25,3 +27,6 @@ the notes of the version's GitHub Release.
 - "Test the connection": Jenkins, its version, the jobs followed, failing or
   queued, the offline agents, the listed jobs Jenkins does not know.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-jenkins/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-jenkins/releases/tag/v1.0.0
