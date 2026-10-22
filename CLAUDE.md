@@ -258,9 +258,9 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
   client redemande avec le crumb et le cookie de session.
 - Une exécution en cours a `building: true`, `result: null`, `duration: 0` : le résultat et la durée
   affichés restent ceux de la dernière exécution terminée.
-- Les exécutions terminées vues sont gardées dans `/data` (numéros) : les cinq dernières de chaque tâche
+- Les exécutions terminées vues sont gardées dans `/data` (numéros) : les dix dernières de chaque tâche
   sont lues, donc des exécutions finies dans le désordre (exécutions concurrentes) sont annoncées une
-  fois chacune. Instable compte comme en échec pour « en échec / revenue au vert » ; annulée ne change
+  fois chacune. Seule une exécution plus récente que la dernière décisive peut changer « en échec / au vert » (nombre `decided`) ; les numéros de la fenêtre courante restent toujours dans `seen` (sinon une tâche recréée, numéros repartis de 1, réannonce ses exécutions à chaque lecture). Instable compte comme en échec pour « en échec / revenue au vert » ; annulée ne change
   rien.
 - Lancer une tâche est désactivé par défaut (`allow_build`) et limité aux tâches suivies, avec les seuls
   paramètres déclarés par la tâche.

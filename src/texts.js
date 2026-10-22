@@ -79,6 +79,12 @@ export const ERROR_TEXT = {
     de: 'Job nicht gefunden: in Jenkins umbenannt oder gelöscht',
     es: 'tarea no encontrada: renombrada o eliminada en Jenkins',
   },
+  [ERROR_KINDS.TOO_LARGE]: {
+    en: 'answer too large: list fewer jobs or folders in the configuration',
+    fr: 'réponse trop grosse : listez moins de tâches ou de dossiers dans la configuration',
+    de: 'Antwort zu groß: Liste weniger Jobs oder Ordner in der Konfiguration auf',
+    es: 'respuesta demasiado grande: indique menos tareas o carpetas en la configuración',
+  },
   [ERROR_KINDS.HTTP]: {
     en: 'unexpected answer, see the logs',
     fr: 'réponse inattendue, voir les logs',
@@ -109,9 +115,9 @@ export const REPORT_TEXT = {
     ok: 'Connected',
     anonymous: 'without a user: anonymous access',
     jobs: (shown, total) => `${shown} jobs followed out of ${total}`,
-    failing: 'failing',
-    queue: 'in the queue',
-    offline: 'agents offline',
+    failing: (count) => `failing: ${count}`,
+    queue: (count) => `queued: ${count}`,
+    offline: (count) => `offline agents: ${count}`,
     build: (allowed) =>
       allowed ? 'Running jobs from scenes: allowed' : 'Running jobs from scenes: off',
     missing: (names) => `Not found in Jenkins: ${names}`,
@@ -121,9 +127,9 @@ export const REPORT_TEXT = {
     ok: 'Connecté',
     anonymous: 'sans utilisateur : accès anonyme',
     jobs: (shown, total) => `${shown} tâches suivies sur ${total}`,
-    failing: 'en échec',
-    queue: "en file d'attente",
-    offline: 'agents hors ligne',
+    failing: (count) => `en échec : ${count}`,
+    queue: (count) => `en attente : ${count}`,
+    offline: (count) => `agents hors ligne : ${count}`,
     build: (allowed) =>
       allowed
         ? 'Lancement depuis les scènes : autorisé'
@@ -135,9 +141,9 @@ export const REPORT_TEXT = {
     ok: 'Verbunden',
     anonymous: 'ohne Benutzer: anonymer Zugriff',
     jobs: (shown, total) => `${shown} von ${total} Jobs verfolgt`,
-    failing: 'fehlgeschlagen',
-    queue: 'in der Warteschlange',
-    offline: 'Agenten offline',
+    failing: (count) => `fehlgeschlagen: ${count}`,
+    queue: (count) => `wartend: ${count}`,
+    offline: (count) => `Agenten offline: ${count}`,
     build: (allowed) =>
       allowed ? 'Jobs aus Szenen starten: erlaubt' : 'Jobs aus Szenen starten: aus',
     missing: (names) => `In Jenkins nicht gefunden: ${names}`,
@@ -147,9 +153,9 @@ export const REPORT_TEXT = {
     ok: 'Conectado',
     anonymous: 'sin usuario: acceso anónimo',
     jobs: (shown, total) => `${shown} tareas seguidas de ${total}`,
-    failing: 'fallidas',
-    queue: 'en cola',
-    offline: 'agentes desconectados',
+    failing: (count) => `fallidas: ${count}`,
+    queue: (count) => `en cola: ${count}`,
+    offline: (count) => `agentes desconectados: ${count}`,
     build: (allowed) =>
       allowed
         ? 'Lanzar tareas desde las escenas: permitido'

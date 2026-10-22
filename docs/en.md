@@ -22,7 +22,7 @@ instance yet: feedback welcome on
   **Job/Read** permissions; running jobs from scenes needs **Job/Build** too.
 
 At each refresh (every minute by default) the integration makes three light
-requests: the job list with the five newest builds of each job (folders
+requests: the job list with the ten newest builds of each job (folders
 included, three levels deep), the build queue and the nodes. Running a job adds
 two requests, only when a scene asks for it.
 
@@ -120,7 +120,7 @@ announces one twice.
 ### Actions
 
 - **Run a Jenkins job**: queues a build of a followed job. Optional parameters,
-  `NAME=value` separated by `&` (e.g. `TARGET=prod&VERSION=1.2`); empty, the job
+  `NAME=value` separated by `&` (e.g. `TARGET=prod&VERSION=1.2`), or a JSON object for a value holding `&` (`{"MESSAGE": "a & b"}`); empty, the job
   uses its default values. A parameter the job does not declare is refused.
   Needs **Allow scenes to run jobs** in the configuration. Variables: the job
   name, whether the build was queued and its queue item number. The build goes
@@ -166,7 +166,7 @@ announces one twice.
   most often: an event arrives up to one interval late.
 - A job is known by its full name: renaming it or moving it to another folder
   makes a new device.
-- The five newest builds of each job are read: when more than five builds end
+- The ten newest builds of each job are read: when more than ten builds end
   between two readings, the oldest ones are not announced.
 - Pipeline stages, test reports and build logs are not read.
 - The texts of devices and scenes follow the language of the configuration;

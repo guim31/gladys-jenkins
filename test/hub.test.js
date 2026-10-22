@@ -367,3 +367,60 @@ test('scene parameters: NAME=value pairs or a JSON object', () => {
   assert.throws(() => parseParameters('{bad', 'fr'), /NOM=valeur/);
   assert.throws(() => parseParameters('[1]', 'en'), /NAME=value/);
 });
+
+test('an older build ending after a newer one does not flip the status', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  const job = world.jenkins.jobs.get('tests');
+  world.jenkins.start('tests'); // #2
+  world.jenkins.start('tests'); // #3
+  Object.assign(job.builds[0], { building: false, result: 'SUCCESS', duration: 1000 });
+  await world.hub.pollNow();
+  Object.assign(job.builds[1], { building: false, result: 'FAILURE', duration: 1000 });
+  await world.hub.pollNow();
+  assert.deepEqual(
+    events(world, TRIGGERS.FINISHED).map((event) => [event.data.number, event.data.result]),
+    [
+      [3, 'success'],
+      [2, 'failure'],
+    ],
+  );
+  assert.deepEqual(events(world, TRIGGERS.STATUS), []);
+});
+
+test('a job recreated (numbers restarting) announces its builds once', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  for (let i = 0; i < 25; i += 1) {
+    world.jenkins.finish('backup', 'SUCCESS');
+  }
+  await world.hub.pollNow();
+  world.jenkins.jobs.get('backup').builds = [];
+  world.jenkins.finish('backup', 'FAILURE');
+  world.jenkins.finish('backup', 'FAILURE');
+  await world.hub.pollNow();
+  await world.hub.pollNow();
+  await world.hub.pollNow();
+  // #1 was seen at the very first reading; #2 is new: announced once, not at
+  // every reading.
+  const after = events(world, TRIGGERS.FINISHED).filter((event) => event.data.number <= 2);
+  assert.deepEqual(
+    after.map((event) => event.data.number),
+    [2],
+  );
+  assert.deepEqual(
+    events(world, TRIGGERS.STATUS).map((event) => [event.data.state, event.data.number]),
+    [['failure', 2]],
+  );
+});
+
+test('agents still reconnecting after Jenkins was unreachable fire no event', async (t) => {
+  const world = await createWorld();
+  t.after(() => world.app.stop());
+  world.jenkins.down = true;
+  await world.hub.pollNow();
+  world.jenkins.down = false;
+  world.jenkins.setOffline('builder-1', true);
+  await world.hub.pollNow();
+  assert.deepEqual(events(world, TRIGGERS.AGENT_OFFLINE), []);
+});

@@ -338,6 +338,7 @@ export class JenkinsHub {
 
   async applySuccess({ version, jobs, queue, computers }) {
     let widgetChanged = this.error !== null || this.readAt === 0;
+    const recovering = this.error !== null;
     if (this.error) {
       logger.info('Jenkins answers again');
     }
@@ -391,7 +392,11 @@ export class JenkinsHub {
     }
     if (computers) {
       const { agents, found } = this.compareAgents(computers);
-      events.push(...found);
+      // Right after Jenkins was unreachable (a restart), its agents are still
+      // reconnecting: their states are learnt, without events.
+      if (!recovering) {
+        events.push(...found);
+      }
       if (JSON.stringify(agents) !== JSON.stringify(this.saved.agents)) {
         this.saved.agents = agents;
         dirty = true;
@@ -416,10 +421,17 @@ export class JenkinsHub {
     const known = Boolean(before) && Array.isArray(before.seen);
     const seen = known ? before.seen : [];
     let broken = known && typeof before.broken === 'boolean' ? before.broken : null;
+    // The newest build that decided the status: an older build of a
+    // concurrent job ending later does not flip it back.
+    let decided = known && Number.isInteger(before.decided) ? before.decided : 0;
     const finished = job.builds
       .filter((build) => !build.building)
       .sort((a, b) => a.number - b.number);
     const fresh = finished.filter((build) => !seen.includes(build.number));
+    const current = finished.map((build) => build.number).sort((a, b) => b - a);
+    if (current.length > 0 && current[0] < decided) {
+      decided = 0; // the numbers restarted: the job was recreated
+    }
     const found = [];
     const device = jobIds(this.gladys, job.fullName).device;
     const language = this.config.language;
@@ -432,6 +444,7 @@ export class JenkinsHub {
         // First reading: what is known, no event for the past.
         if (decisive) {
           broken = isBroken(build.result);
+          decided = build.number;
         }
         continue;
       }
@@ -452,7 +465,8 @@ export class JenkinsHub {
           },
         });
       }
-      if (decisive) {
+      if (decisive && build.number > decided) {
+        decided = build.number;
         const nowBroken = isBroken(build.result);
         // The first failure of a job counts; a success only after a failure.
         const turned = nowBroken ? broken !== true : broken === true;
@@ -473,11 +487,14 @@ export class JenkinsHub {
         broken = nowBroken;
       }
     }
-    const numbers = [...finished.map((build) => build.number), ...seen]
-      .filter((number, index, all) => all.indexOf(number) === index)
-      .sort((a, b) => b - a)
-      .slice(0, SEEN_BUILDS);
-    return { saved: { seen: numbers, broken }, found };
+    // The numbers of the current window are always kept, even lower than the
+    // ones remembered (numbers restarting after a job is recreated): a build
+    // dropped from the list would be announced again at every reading.
+    const numbers = [...current, ...seen.filter((number) => !current.includes(number))].slice(
+      0,
+      SEEN_BUILDS,
+    );
+    return { saved: { seen: numbers, broken, decided }, found };
   }
 
   /** The agents that went offline since the last reading. */
@@ -535,7 +552,7 @@ export class JenkinsHub {
   async fire(eventKey, data) {
     try {
       await this.gladys.publishSceneEvent(eventKey, data);
-      logger.info(`${data.job_name ?? data.agent_name}: ${eventKey}`);
+      logger.debug(`${data.job_name ?? data.agent_name}: ${eventKey}`);
       this.problems.recover('events', 'Scene events accepted again');
       return true;
     } catch (err) {
@@ -791,13 +808,13 @@ export class JenkinsHub {
       }
       const figures = [
         text.jobs(this.jobs.size, this.totalJobs),
-        `${summary.failingJobs} ${text.failing}`,
+        text.failing(summary.failingJobs),
       ];
       if (summary.queue !== null) {
-        figures.push(`${summary.queue} ${text.queue}`);
+        figures.push(text.queue(summary.queue));
       }
       if (summary.offlineAgents !== null) {
-        figures.push(`${summary.offlineAgents} ${text.offline}`);
+        figures.push(text.offline(summary.offlineAgents));
       }
       const lines = [head.join(' — '), figures.join(' · '), text.build(this.config.allowBuild)];
       if (this.missing.length > 0) {

@@ -25,7 +25,7 @@ Gladys-Instanz: Rückmeldungen sind willkommen in
   **Job/Build**.
 
 Bei jeder Aktualisierung (standardmäßig jede Minute) stellt die Integration drei
-leichte Anfragen: die Job-Liste mit den fünf neuesten Builds jedes Jobs (Ordner
+leichte Anfragen: die Job-Liste mit den zehn neuesten Builds jedes Jobs (Ordner
 eingeschlossen, drei Ebenen tief), die Warteschlange und die Knoten. Einen Job
 zu starten kostet zwei weitere Anfragen, nur wenn eine Szene es verlangt.
 
@@ -130,7 +130,7 @@ verpasst kein Ereignis und meldet keines doppelt.
 
 - **Jenkins-Job starten**: reiht einen Build eines verfolgten Jobs ein.
   Optionale Parameter, `NAME=Wert` durch `&` getrennt (z. B.
-  `TARGET=prod&VERSION=1.2`); leer nimmt der Job seine Standardwerte. Ein
+  `TARGET=prod&VERSION=1.2`), oder ein JSON-Objekt für einen Wert mit `&` (`{"MESSAGE": "a & b"}`); leer nimmt der Job seine Standardwerte. Ein
   Parameter, den der Job nicht deklariert, wird abgelehnt. Erfordert **Szenen
   dürfen Jobs starten** in der Konfiguration. Variablen: der Name des Jobs, ob
   der Build eingereiht wurde, und seine Nummer in der Warteschlange. Der Build
@@ -180,7 +180,7 @@ verpasst kein Ereignis und meldet keines doppelt.
   gelesen: Ein Ereignis kommt bis zu ein Intervall verspätet.
 - Ein Job ist an seinem vollständigen Namen erkannt: Umbenennen oder Verschieben
   in einen anderen Ordner ergibt ein neues Gerät.
-- Die fünf neuesten Builds jedes Jobs werden gelesen: Enden mehr als fünf Builds
+- Die zehn neuesten Builds jedes Jobs werden gelesen: Enden mehr als zehn Builds
   zwischen zwei Lesevorgängen, werden die ältesten nicht gemeldet.
 - Pipeline-Stufen, Testberichte und Build-Protokolle werden nicht gelesen.
 - Die Texte der Geräte und Szenen folgen der Sprache der Konfiguration; die

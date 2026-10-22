@@ -24,7 +24,7 @@ de Gladys: sus comentarios son bienvenidos en
   también **Job/Build**.
 
 En cada actualización (cada minuto por defecto), la integración hace tres
-solicitudes ligeras: la lista de tareas con las cinco últimas ejecuciones de cada
+solicitudes ligeras: la lista de tareas con las diez últimas ejecuciones de cada
 una (carpetas incluidas, hasta tres niveles), la cola y los nodos. Lanzar una
 tarea añade dos solicitudes, solo cuando una escena lo pide.
 
@@ -129,7 +129,7 @@ anuncia uno dos veces.
 
 - **Lanzar una tarea de Jenkins**: pone en cola una ejecución de una tarea
   seguida. Parámetros opcionales, `NOMBRE=valor` separados por `&` (p. ej.
-  `TARGET=prod&VERSION=1.2`); vacío, la tarea usa sus valores por defecto. Se
+  `TARGET=prod&VERSION=1.2`), o un objeto JSON para un valor que contenga `&` (`{"MESSAGE": "a & b"}`); vacío, la tarea usa sus valores por defecto. Se
   rechaza un parámetro que la tarea no declara. Requiere **Permitir que las
   escenas lancen tareas** en la configuración. Variables: el nombre de la tarea,
   si la ejecución se puso en cola y su número en la cola. La ejecución continúa
@@ -178,7 +178,7 @@ anuncia uno dos veces.
   mucho cada minuto: un evento llega con hasta un intervalo de retraso.
 - Una tarea se conoce por su nombre completo: renombrarla o moverla a otra
   carpeta crea un dispositivo nuevo.
-- Se leen las cinco últimas ejecuciones de cada tarea: si terminan más de cinco
+- Se leen las diez últimas ejecuciones de cada tarea: si terminan más de diez
   entre dos lecturas, las más antiguas no se anuncian.
 - No se leen las etapas de los pipelines, los informes de pruebas ni los
   registros de ejecución.

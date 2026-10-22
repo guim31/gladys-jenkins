@@ -2,8 +2,8 @@
 // Jenkins client: the JSON remote access API, authenticated by a user name and
 // an API token (HTTP basic). One reading is three requests:
 //
-//   GET /api/json?tree=jobs[…builds[…]{0,5}…]   every job, folders included
-//                                               (three levels), with its five
+//   GET /api/json?tree=jobs[…builds[…]{0,10}…]  every job, folders included
+//                                               (three levels), with its ten
 //                                               newest builds; the X-Jenkins
 //                                               header gives the version
 //   GET /queue/api/json?tree=items[…]           the build queue
@@ -30,6 +30,7 @@ export const ERROR_KINDS = Object.freeze({
   NOT_JENKINS: 'not_jenkins', // something answers, not the Jenkins API
   REDIRECT: 'redirect', // the address redirects (usually HTTP to HTTPS)
   NOT_FOUND: 'not_found', // the job does not exist (renamed, deleted)
+  TOO_LARGE: 'too_large', // the job list exceeds MAX_BODY_BYTES
   HTTP: 'http', // any other HTTP error
 });
 
@@ -215,7 +216,7 @@ export function normalizeComputers(raw) {
 }
 
 const BUILD_FIELDS = 'number,result,timestamp,duration,building,url';
-const JOB_FIELDS = `name,fullName,url,color,buildable,builds[${BUILD_FIELDS}]{0,5}`;
+const JOB_FIELDS = `name,fullName,url,color,buildable,builds[${BUILD_FIELDS}]{0,10}`;
 // Three levels: a folder, a multibranch project in it, its branches.
 export const JOBS_TREE = `jobs[${JOB_FIELDS},jobs[${JOB_FIELDS},jobs[${JOB_FIELDS}]]]`;
 const QUEUE_TREE = 'items[id,why,stuck,blocked,inQueueSince,task[name]]';
@@ -269,6 +270,9 @@ export class JenkinsClient {
       const code = err.cause?.code ?? err.code;
       if (TLS_CODES.has(code)) {
         throw new JenkinsError(ERROR_KINDS.TLS, `Certificate refused (${code})`);
+      }
+      if (code === 'TOO_LARGE') {
+        throw new JenkinsError(ERROR_KINDS.TOO_LARGE, 'Response too large');
       }
       if (err.name === 'TimeoutError' || code === 23) {
         throw new JenkinsError(ERROR_KINDS.TIMEOUT, 'No answer in time');
@@ -385,8 +389,10 @@ export class JenkinsClient {
     if (response.status === 403) {
       response = await post(await this.crumb());
     }
-    // 303: the same build (same parameters) already waits in the queue.
-    if (response.status === 303) {
+    // 303 to the job: the same build (same parameters) already waits in the
+    // queue. A 303 elsewhere (the login page of a proxy) is an error.
+    const location = response.headers?.location ?? '';
+    if (response.status === 303 && (location === '' || /\/(job|queue)\//.test(location))) {
       return { queueId: null };
     }
     this.check(response.status, { job: true });

@@ -44,7 +44,7 @@ The user documentation: [English](docs/en.md), [français](docs/fr.md),
 ## How it works
 
 Every minute by default (1 to 15 minutes), the container makes three requests
-to the JSON API of Jenkins: the job tree with the five newest builds of each
+to the JSON API of Jenkins: the job tree with the ten newest builds of each
 job, the queue and the nodes. Finished builds, failures, returns to green and
 agents going offline become scene events; what was seen is kept in `/data`, so
 a restart neither misses nor repeats an event. Running a job posts to
@@ -55,7 +55,7 @@ only when **Allow scenes to run jobs** is on.
 
 - Running a job is the only command, off by default; builds cannot be stopped.
 - 50 jobs at most, three folder levels; an event arrives up to one refresh
-  interval late; more than five builds of a job between two readings: the
+  interval late; more than ten builds of a job between two readings: the
   oldest are not announced.
 - A job is known by its full name: renamed or moved, it is a new device.
 - A self-signed certificate is refused: use the `http://` address on the local

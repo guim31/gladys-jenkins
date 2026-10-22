@@ -25,7 +25,7 @@ instance Gladys : vos retours sont les bienvenus dans
   aussi **Job/Build**.
 
 À chaque actualisation (chaque minute par défaut), l'intégration fait trois
-requêtes légères : la liste des tâches avec les cinq dernières exécutions de
+requêtes légères : la liste des tâches avec les dix dernières exécutions de
 chacune (dossiers compris, sur trois niveaux), la file d'attente et les nœuds.
 Lancer une tâche ajoute deux requêtes, seulement quand une scène le demande.
 
@@ -131,7 +131,7 @@ ne fait ni manquer ni annoncer deux fois un événement.
 
 - **Lancer une tâche Jenkins** : met en file une exécution d'une tâche suivie.
   Paramètres facultatifs, `NOM=valeur` séparés par `&` (ex.
-  `TARGET=prod&VERSION=1.2`) ; vide, la tâche prend ses valeurs par défaut. Un
+  `TARGET=prod&VERSION=1.2`), ou un objet JSON pour une valeur contenant `&` (`{"MESSAGE": "a & b"}`) ; vide, la tâche prend ses valeurs par défaut. Un
   paramètre que la tâche ne déclare pas est refusé. Exige **Autoriser les scènes
   à lancer des tâches** dans la configuration. Variables : le nom de la tâche,
   si l'exécution a été mise en file et son numéro dans la file. L'exécution se
@@ -183,7 +183,7 @@ ne fait ni manquer ni annoncer deux fois un événement.
   retard.
 - Une tâche est connue par son nom complet : la renommer ou la déplacer dans un
   autre dossier crée un nouvel appareil.
-- Les cinq dernières exécutions de chaque tâche sont lues : quand plus de cinq
+- Les dix dernières exécutions de chaque tâche sont lues : quand plus de dix
   exécutions se terminent entre deux lectures, les plus anciennes ne sont pas
   annoncées.
 - Les étapes des pipelines, les rapports de tests et les journaux d'exécution ne

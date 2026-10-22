@@ -641,10 +641,10 @@
             "es": "Parámetros (opcional)"
           },
           "description": {
-            "en": "NAME=value, separated by &. Empty: the default values of the job.",
-            "fr": "NOM=valeur, séparés par &. Vide : les valeurs par défaut de la tâche.",
-            "de": "NAME=Wert, durch & getrennt. Leer: die Standardwerte des Jobs.",
-            "es": "NOMBRE=valor, separados por &. Vacío: los valores por defecto de la tarea."
+            "en": "NAME=value separated by &, or a JSON object. Empty: the default values of the job.",
+            "fr": "NOM=valeur séparés par &, ou un objet JSON. Vide : les valeurs par défaut de la tâche.",
+            "de": "NAME=Wert durch & getrennt, oder ein JSON-Objekt. Leer: die Standardwerte des Jobs.",
+            "es": "NOMBRE=valor separados por &, o un objeto JSON. Vacío: los valores por defecto de la tarea."
           },
           "placeholder": {
             "en": "e.g. TARGET=prod&VERSION=1.2",

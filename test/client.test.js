@@ -222,4 +222,16 @@ test('build: /build or /buildWithParameters, the queue item, the crumb when aske
   // 303: Jenkins merged the request with an identical one waiting.
   const merged = client(async () => ({ status: 303, body: '', headers: {} }));
   assert.deepEqual(await merged.build('backup', null), { queueId: null });
+  const toJob = client(async () => ({
+    status: 303,
+    body: '',
+    headers: { location: 'https://ci.example.com/job/backup/' },
+  }));
+  assert.deepEqual(await toJob.build('backup', null), { queueId: null });
+  const login = client(async () => ({
+    status: 303,
+    body: '',
+    headers: { location: 'https://sso.example.com/login?next=x' },
+  }));
+  await assert.rejects(login.build('backup', null), (err) => err.kind === ERROR_KINDS.REDIRECT);
 });
