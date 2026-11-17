@@ -8,8 +8,8 @@
     "de": "Deine Jenkins-Jobs in Gladys: Build-Status, Fehlerwarnungen, Job aus einer Szene starten.",
     "es": "Sus tareas de Jenkins en Gladys: estado de los builds, alertas de fallo, lanzar desde una escena."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-jenkins:1.0.0",
+  "version": "1.0.1",
+  "docker_image": "ghcr.io/guim31/gladys-jenkins:1.0.1",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-jenkins/main/cover.png",
   "categories": ["services"],

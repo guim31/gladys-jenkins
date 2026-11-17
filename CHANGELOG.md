@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-17
+
 ### Changed
 
 - SDK 0.16.1.
@@ -32,5 +34,6 @@ the notes of the version's GitHub Release.
   queued, the offline agents, the listed jobs Jenkins does not know.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-jenkins/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/guim31/gladys-jenkins/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-jenkins/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/guim31/gladys-jenkins/releases/tag/v1.0.0
